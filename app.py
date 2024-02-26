@@ -52,6 +52,6 @@ def copilot():
         return {"result": "Fail", "Exception": e}, 400
 
 
-if __name__ == "__main__":
-    logging.info("Starting the app....")
-    app.run(debug=True)
+#if __name__ == "__main__":
+#    logging.info("Starting the app....")
+#    app.run(host="0.0.0.0", port=5123, debug=True)

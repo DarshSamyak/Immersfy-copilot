@@ -1,2 +1,5 @@
 .env
 *.log
+myenv/
+wsgi.py
+__pycache__/

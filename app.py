@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, make_response
+from flask_cors import CORS, cross_origin
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_openai import OpenAI
 from langchain.chains import ConversationChain
@@ -10,12 +11,22 @@ load_dotenv()
 import logging, requests, os
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s", filename="app.log")
+
 app = Flask(__name__)
+CORS(app)
+app.config['SECRET_KEY'] = 'IMMERSFY_COPILOT'
+
 openai_api_key = os.environ.get("OPEN_AI_KEY")
 llm = OpenAI(temperature=0.7, max_tokens=512, openai_api_key=openai_api_key)
 window_memory = ConversationBufferWindowMemory(k=5)
 conversation = ConversationChain(llm=llm, memory=window_memory)
 
+def _build_cors_preflight_response():
+    response = make_response()
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add('Access-Control-Allow-Headers', "*")
+    response.headers.add('Access-Control-Allow-Methods', "*")
+    return response
 
 def process_image(base64_image, prompt):
     logging.info("Process image method called....")
@@ -29,7 +40,10 @@ def process_image(base64_image, prompt):
 
 
 @app.route("/copilot", methods=["POST"])
+@cross_origin()
 def copilot():
+    if(request.method=='OPTIONS'):
+        return _build_cors_preflight_response()
     try:
         logging.info("Copilot Endpoint Called....")
         prompt = request.json.get("prompt")
@@ -52,6 +66,6 @@ def copilot():
         return {"result": "Fail", "Exception": e}, 400
 
 
-#if __name__ == "__main__":
-#    logging.info("Starting the app....")
-#    app.run(host="0.0.0.0", port=5123, debug=True)
+if __name__ == "__main__":
+    logging.info("Starting the app....")
+    app.run(debug=True)
